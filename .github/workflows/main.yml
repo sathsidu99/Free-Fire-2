@@ -2,24 +2,45 @@ name: Build SASIX APK
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, master ]
+  workflow_dispatch:  # Manual trigger
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
     - name: Set up JDK 17
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
+        
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+      
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+      
     - name: Build with Gradle
-      run: chmod +x gradlew && ./gradlew assembleDebug
+      run: ./gradlew assembleDebug
+      
     - name: Upload APK
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4  # ⚠️ v4 use කරන්න!
       with:
-        name: SASIX-DUAL-CAM-APK
+        name: SASIX-APP1-DUAL-CAM
         path: app/build/outputs/apk/debug/app-debug.apk
+        if-no-files-found: error
+        retention-days: 90
+        
+    - name: Upload mapping (optional)
+      uses: actions/upload-artifact@v4
+      with:
+        name: mapping
+        path: app/build/outputs/mapping/
+        if-no-files-found: ignore
